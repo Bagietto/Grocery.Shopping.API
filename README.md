@@ -1,105 +1,82 @@
 # Grocery.Shopping.API
 
-API ASP.NET Core para controle de despensa/estoque de mercado, com cadastro de produtos, movimentacoes de entrada/saida/ajuste e reconhecimento de produto por foto usando IA.
+Logo/Badge status:
+[![.NET Version](https://img.shields.io/badge/.NET-8.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![OpenAI Vision](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-## Visao Geral
+Uma Web API moderna em **ASP.NET Core (.NET 8)** projetada para controle de despensa e estoque residencial/comercial, com foco em **automação baseada em Inteligência Artificial**. 
 
-O projeto permite:
+Este projeto explora a fusão de Large Language Models (LLMs) com fluxos de desenvolvimento backend robustos, superando as limitações do OCR tradicional. Através da **OpenAI Vision API**, o sistema extrai dados semânticos de imagens de embalagens de produtos e os transforma instantaneamente em dados estruturados (JSON), prontos para persistência em um banco **NoSQL (MongoDB)**.
 
-- reconhecer dados de um produto a partir de uma foto da embalagem;
-- sugerir nome, marca, quantidade, unidade de medida, categoria e codigo de barras;
-- confirmar o produto reconhecido e registrar entrada no estoque;
-- registrar movimentacoes manuais de estoque;
-- armazenar produtos e movimentacoes no MongoDB;
-- consultar e testar a API via Swagger em ambiente de desenvolvimento.
+---
 
-## Tecnologias
+## 🚀 Destaque Tecnológico: Agente de Visão Semântica
 
-- .NET 8
-- ASP.NET Core Web API
-- MongoDB
-- MongoDB.Driver
-- Swagger / Swashbuckle
-- OpenAI Vision via HTTP
+Diferente de sistemas OCR tradicionais — que apenas extraem textos brutos e exigem regras regex complexas e frágeis para estruturar informações —, este projeto implementa um **Agente de Reconhecimento Visual**. 
 
-## Estrutura do Projeto
+O agente é capaz de:
+*   **Compreensão Semântica:** Identificar o nome do produto, marca e categoria mesmo em embalagens com designs complexos ou fontes artísticas.
+*   **Inferência de Unidades:** Extrair valores numéricos e unidades de medida de forma separada e padronizada (ex: `5` e `kg`).
+*   **Grau de Confiança:** Avaliar a confiabilidade de cada dado extraído em uma escala de `0.0` a `1.0`.
+*   **Estruturação Rígida:** Retornar os dados em formato JSON estrito mapeado diretamente para DTOs C#.
 
-```text
-Grocery.Shopping.API/
-|-- Application/
-|   |-- Interfaces/
-|   `-- Services/
-|-- Arguments/
-|-- Controllers/
-|-- Domain/
-|   |-- Entities/
-|   |-- Interfaces/
-|   `-- Services/
-|-- Dtos/
-|-- Enums/
-|-- Infra/
-|   `-- Mongo/
-|-- Properties/
-|-- Program.cs
-|-- appsettings.json
-`-- Grocery.Shopping.API.csproj
+---
+
+## 🛠️ Arquitetura e Fluxo de Dados
+
+A arquitetura segue boas práticas de separação de conceitos (Separation of Concerns), dividida em camadas lógicas:
+
+```mermaid
+graph TD
+    Client[Cliente / App] -->|1. Envia Foto do Produto| API[ASP.NET Core Web API]
+    API -->|2. Converte p/ Base64 e envia Prompt| OpenAI[OpenAI Vision API (GPT-4o-mini)]
+    OpenAI -->|3. Retorna JSON Estruturado| API
+    API -->|4. Localiza/Cria Produto| Mongo[(MongoDB)]
+    API -->|5. Registra Movimentação de Entrada| Mongo
+    API -->|6. Retorna Estoque Atualizado| Client
 ```
 
-Principais responsabilidades:
+### Divisão de Camadas
+*   [Controllers](file:///f:/Projetos/Fagron/Grocery.Shopping.API/Controllers): Endpoints HTTP RESTful (`EstoqueController`, `ProdutosController`).
+*   [Application](file:///f:/Projetos/Fagron/Grocery.Shopping.API/Application): Serviços de integração com APIs externas (ex: `ReconhecimentoFotoService`).
+*   [Domain](file:///f:/Projetos/Fagron/Grocery.Shopping.API/Domain): Regras de negócio essenciais, entidades e serviços de domínio (`EstoqueService`).
+*   [Dtos](file:///f:/Projetos/Fagron/Grocery.Shopping.API/Dtos): Contratos estruturados de entrada e saída.
+*   [Infra](file:///f:/Projetos/Fagron/Grocery.Shopping.API/Infra): Camada de persistência contendo as configurações e contexto do MongoDB.
 
-- `Controllers`: expoem os endpoints HTTP.
-- `Application/Services`: integracoes de aplicacao, como reconhecimento por foto.
-- `Domain/Services`: regras de estoque e persistencia de movimentacoes.
-- `Infra/Mongo`: configuracao e acesso as collections do MongoDB.
-- `Dtos`: contratos de entrada e saida da API.
-- `Enums`: categorias de produto e tipos de movimentacao.
+---
 
-## Funcionalidades
+## ⚙️ Tecnologias Utilizadas
 
-### Reconhecimento de Produto por Foto
+*   **Backend:** ASP.NET Core Web API com **.NET 8** C#
+*   **Banco de Dados:** **MongoDB** (Persistência escalável de documentos NoSQL)
+*   **IA de Visão:** **OpenAI Vision API** (`gpt-4o-mini`)
+*   **Documentação:** **Swagger / Swashbuckle** para testes iterativos de endpoints
+*   **HttpClient Factory:** Comunicação assíncrona otimizada com a OpenAI
 
-Endpoint:
+---
 
-```http
-POST /Produtos/reconhecer-por-foto
-Content-Type: multipart/form-data
-```
+## 🔌 Endpoints Principais (API)
 
-Campo esperado:
+### 1. Reconhecimento de Produto por Foto
+Analisa a imagem enviada e retorna uma sugestão de preenchimento inteligente de dados.
 
-- `foto`: arquivo de imagem do produto.
+*   **Método:** `POST`
+*   **Endpoint:** `/api/Produtos/reconhecer-por-foto`
+*   **Content-Type:** `multipart/form-data`
+*   **Parâmetro:** `foto` (Arquivo de imagem)
 
-A API envia a imagem para o modelo configurado no servico `ReconhecimentoFotoService` e espera uma resposta JSON com os campos reconhecidos e seus niveis de confianca.
-
-Exemplo de resposta:
-
+#### Exemplo de Resposta (JSON):
 ```json
 {
   "produtoSugerido": {
-    "nomeProduto": {
-      "valor": "Arroz Tipo 1",
-      "confianca": 0.92
-    },
-    "marca": {
-      "valor": "Marca Exemplo",
-      "confianca": 0.86
-    },
-    "quantidadeUnidade": {
-      "valor": 5,
-      "confianca": 0.95
-    },
-    "unidadeMedida": {
-      "valor": "kg",
-      "confianca": 0.95
-    },
-    "categoriaSugestao": {
-      "valor": "Graos",
-      "confianca": 0.8
-    },
-    "codigoBarras": {
-      "valor": null,
-      "confianca": 0
-    }
+    "nomeProduto": { "valor": "Arroz Integral Tipo 1", "confianca": 0.95 },
+    "marca": { "valor": "Camil", "confianca": 0.98 },
+    "quantidadeUnidade": { "valor": 1, "confianca": 0.99 },
+    "unidadeMedida": { "valor": "kg", "confianca": 0.99 },
+    "categoriaSugestao": { "valor": "Graos", "confianca": 0.90 },
+    "codigoBarras": { "valor": null, "confianca": 0.0 }
   },
   "jaExisteNoCatalogo": false,
   "produtoIdExistente": null,
@@ -107,216 +84,116 @@ Exemplo de resposta:
 }
 ```
 
-### Adicionar Produto ao Estoque
+### 2. Adicionar Produto ao Estoque
+Efetua o cadastro ou atualização do produto no catálogo e registra a entrada de quantidade no estoque.
 
-Endpoint:
+*   **Método:** `POST`
+*   **Endpoint:** `/api/Estoque/adicionar`
+*   **Content-Type:** `application/json`
 
-```http
-POST /api/Estoque/adicionar
-Content-Type: application/json
-```
-
-Cria ou atualiza um produto e registra uma movimentacao de estoque, normalmente do tipo `Entrada`.
-
-Exemplo:
-
+#### Exemplo de Requisição:
 ```json
 {
   "produto": {
-    "nome": "Arroz Tipo 1",
-    "marca": "Marca Exemplo",
+    "nome": "Arroz Integral Tipo 1",
+    "marca": "Camil",
     "unidadeMedida": "kg",
     "categoria": 1,
-    "codigoBarras": "7890000000000",
-    "imagemUrl": null
+    "codigoBarras": "7891910000192"
   },
   "movimentacao": {
     "tipo": 1,
-    "quantidadeUnidades": 3,
-    "dataVencimento": "2026-12-31T00:00:00Z",
-    "motivo": "Entrada apos reconhecimento por foto"
+    "quantidadeUnidades": 5,
+    "dataVencimento": "2027-06-30T00:00:00Z",
+    "motivo": "Abastecimento Mensal"
   }
 }
 ```
 
-Exemplo de resposta:
+---
 
+## 🛠️ Configuração e Execução Local
+
+### Pré-requisitos
+*   [.NET SDK 8.0+](https://dotnet.microsoft.com/download/dotnet/8.0)
+*   [MongoDB](https://www.mongodb.com/try/download/community) rodando localmente ou instância no MongoDB Atlas
+*   Uma chave de API ativa da [OpenAI](https://platform.openai.com/)
+
+### Variáveis de Configuração
+As chaves sensíveis devem ser configuradas utilizando **User Secrets** para evitar vazamentos no repositório público.
+
+1.  Inicialize os segredos do projeto:
+    ```bash
+    dotnet user-secrets init
+    ```
+2.  Defina as configurações de banco e a chave de API da OpenAI:
+    ```bash
+    dotnet user-secrets set "OpenAI:ApiKey" "sua-chave-openai-aqui"
+    dotnet user-secrets set "Mongo:ConnectionString" "mongodb://localhost:27017"
+    dotnet user-secrets set "Mongo:DatabaseName" "GroceryShoppingDb"
+    ```
+
+### Executando o Projeto
+1.  Restaure as dependências do NuGet:
+    ```bash
+    dotnet restore
+    ```
+2.  Execute o servidor de desenvolvimento:
+    ```bash
+    dotnet run
+    ```
+3.  Acesse o Swagger no navegador:
+    *   **HTTP:** [http://localhost:5202/swagger](http://localhost:5202/swagger)
+    *   **HTTPS:** [https://localhost:7041/swagger](https://localhost:7041/swagger)
+
+---
+
+## 🗄️ Modelagem MongoDB (Collections)
+
+### 📌 `produtos`
+Armazena a entidade do produto com dados unificados e auditoria básica.
 ```json
 {
-  "produtoId": "665000000000000000000000",
-  "movimentacaoId": "665000000000000000000001",
-  "quantidadeTotalProdutoAposEntrada": 3,
-  "mensagem": "Estoque atualizado com sucesso."
+  "_id": "ObjectId",
+  "Nome": "string",
+  "Marca": "string",
+  "UnidadeMedida": "string",
+  "Categoria": "int (Enum)",
+  "CodigoBarras": "string",
+  "ImagemUrl": "string",
+  "CriadoEm": "DateTime",
+  "AtualizadoEm": "DateTime"
 }
 ```
 
-### Registrar Movimentacao Manual
-
-Endpoint:
-
-```http
-POST /api/Estoque/movimentar
-Content-Type: application/json
-```
-
-Registra uma entrada, saida ou ajuste de estoque para um produto existente.
-
-Exemplo:
-
+### 📌 `movimentacoesEstoque`
+Registra o histórico transacional do estoque (entradas, saídas e ajustes). O saldo atual de qualquer produto é calculado agregando o histórico desta coleção.
 ```json
 {
-  "produtoId": "665000000000000000000000",
-  "tipo": 2,
-  "quantidadeUnidades": 1,
-  "dataMovimento": "2026-05-18T12:00:00Z",
-  "dataVencimento": "2026-12-31T00:00:00Z",
-  "motivo": "Consumo"
+  "_id": "ObjectId",
+  "ProdutoId": "string (ForeignKey)",
+  "Tipo": "int (Enum)",
+  "QuantidadeUnidades": "int",
+  "DataMovimento": "DateTime",
+  "DataVencimento": "DateTime?",
+  "Motivo": "string"
 }
 ```
 
-Resposta:
+---
 
-```json
-{
-  "mensagem": "Movimentacao registrada com sucesso."
-}
-```
+## 🔮 Próximos Passos (Roadmap de Evolução)
 
-## Enums Importantes
+Para transformar esta API em um produto de nível de produção:
+*   [ ] **Listagem Avançada:** Criar query endpoints para relatórios e alertas de produtos vencidos.
+*   [ ] **Testes Automatizados:** Implementar testes de integração usando *xUnit* e *WireMock.Net* para simular a API da OpenAI.
+*   [ ] **Validação Fina:** Adicionar *FluentValidation* nas requisições de estoque e cadastro.
+*   [ ] **Segurança:** Implementar autenticação via JWT ou API Keys nos endpoints.
+*   [ ] **Resiliência:** Adicionar políticas de retry/circuit breaker na chamada da OpenAI Vision usando *Polly*.
+*   [ ] **SDK Oficial:** Migrar a chamada HTTP pura da OpenAI para a biblioteca oficial da OpenAI para .NET.
 
-### TipoMovimentoEstoque
+---
 
-| Valor | Nome | Descricao |
-| --- | --- | --- |
-| 1 | Entrada | Adiciona unidades ao estoque |
-| 2 | Saida | Remove unidades do estoque |
-| 3 | Ajuste | Registra correcao manual |
+## 📄 Licença
 
-### CategoriaProduto
-
-O projeto possui uma lista ampla de categorias, incluindo:
-
-- `Graos`
-- `Massas`
-- `Enlatados`
-- `Laticinios`
-- `BebidasNaoAlcoolicas`
-- `Higiene`
-- `Limpeza`
-- `PetRacoes`
-- `Outros`
-
-Consulte `Enums/CategoriaProduto.cs` para a lista completa e seus valores numericos.
-
-## Configuracao
-
-O arquivo `appsettings.json` deve conter apenas configuracoes compartilhaveis. Valores sensiveis, como chave da OpenAI e connection string real, devem ser definidos por variaveis de ambiente, User Secrets ou um `appsettings.Development.json` local ignorado pelo Git.
-
-Exemplo de configuracao local:
-
-```json
-{
-  "OpenAI": {
-    "ApiKey": "sua-chave-openai"
-  },
-  "Mongo": {
-    "ConnectionString": "mongodb://localhost:27017",
-    "DatabaseName": "DespensaDb"
-  }
-}
-```
-
-### User Secrets
-
-Opcionalmente, configure os segredos com:
-
-```powershell
-dotnet user-secrets init
-dotnet user-secrets set "OpenAI:ApiKey" "sua-chave-openai"
-dotnet user-secrets set "Mongo:ConnectionString" "mongodb://localhost:27017"
-dotnet user-secrets set "Mongo:DatabaseName" "DespensaDb"
-```
-
-## Como Executar Localmente
-
-### Pre-requisitos
-
-- .NET SDK 8
-- MongoDB local ou remoto
-- Chave de API da OpenAI para o reconhecimento por foto
-
-### Restaurar dependencias
-
-```powershell
-dotnet restore
-```
-
-### Executar a API
-
-```powershell
-dotnet run
-```
-
-Perfis locais configurados:
-
-- HTTP: `http://localhost:5202`
-- HTTPS: `https://localhost:7041`
-
-Em ambiente `Development`, a documentacao Swagger fica disponivel em:
-
-```text
-http://localhost:5202/swagger
-https://localhost:7041/swagger
-```
-
-## Collections MongoDB
-
-A API utiliza as seguintes collections:
-
-- `produtos`
-- `movimentacoesEstoque`
-
-Modelo simplificado:
-
-- `Produto`: nome, marca, unidade de medida, categoria, codigo de barras, imagem e datas de auditoria.
-- `MovimentacaoEstoque`: produto, tipo, quantidade, data do movimento, data de vencimento e motivo.
-
-## Regras Atuais de Estoque
-
-- Produto pode ser localizado por `Id`.
-- Se nao houver `Id`, a API tenta localizar por `CodigoBarras`.
-- Se o produto nao existir, ele e criado.
-- Se o produto existir, seus dados principais sao atualizados.
-- O saldo atual e calculado somando movimentacoes:
-  - `Entrada`: soma quantidade.
-  - `Saida`: subtrai quantidade.
-  - `Ajuste`: atualmente soma quantidade.
-
-## Observacoes de Seguranca
-
-- Nao versionar `appsettings.Development.json`.
-- Nao versionar chaves de API.
-- Rotacionar qualquer chave exposta acidentalmente.
-- Preferir User Secrets em desenvolvimento.
-- Preferir variaveis de ambiente ou gerenciador de segredos em producao.
-
-## Status do Projeto
-
-Implementado:
-
-- API ASP.NET Core .NET 8.
-- Swagger em ambiente de desenvolvimento.
-- Integracao com MongoDB.
-- Reconhecimento de produto por foto.
-- Cadastro/atualizacao de produto.
-- Movimentacoes de estoque.
-
-Pontos naturais para evolucao:
-
-- endpoint de listagem/resumo de estoque;
-- testes automatizados;
-- validacoes com Data Annotations ou FluentValidation;
-- autenticacao/autorizacao;
-- indices MongoDB para `CodigoBarras` e `ProdutoId`;
-- tratamento padronizado de erros;
-- migracao da chamada OpenAI para SDK oficial ou Responses API.
+Este projeto é de código aberto e está licenciado sob a [MIT License](LICENSE). Sinta-se à vontade para clonar, estudar, criar forks e contribuir!
