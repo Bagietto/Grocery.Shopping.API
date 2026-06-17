@@ -30,10 +30,10 @@ A arquitetura segue boas práticas de separação de conceitos (Separation of Co
 
 ```mermaid
 graph TD
-    Client[Cliente / App] -->|1. Envia Foto do Produto| API[ASP.NET Core Web API]
-    API -->|2. Converte p/ Base64 e envia Prompt| OpenAI[OpenAI Vision API (GPT-4o-mini)]
+    Client["Cliente / App"] -->|1. Envia Foto do Produto| API["ASP.NET Core Web API"]
+    API -->|2. Converte p/ Base64 e envia Prompt| OpenAI["OpenAI Vision API (GPT-4o-mini)"]
     OpenAI -->|3. Retorna JSON Estruturado| API
-    API -->|4. Localiza/Cria Produto| Mongo[(MongoDB)]
+    API -->|4. Localiza/Cria Produto| Mongo[("MongoDB")]
     API -->|5. Registra Movimentação de Entrada| Mongo
     API -->|6. Retorna Estoque Atualizado| Client
 ```
