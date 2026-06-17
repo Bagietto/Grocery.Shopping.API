@@ -21,7 +21,7 @@ builder.Services.Configure<MongoSettings>(
     builder.Configuration.GetSection("Mongo"));
 
 // Contexto Mongo
-builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddSingleton<IMongoDbContext, MongoDbContext>();
 
 builder.Services.AddControllers();
 

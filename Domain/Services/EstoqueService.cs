@@ -1,4 +1,4 @@
-﻿using Grocery.Shopping.API.Application.Interfaces;
+using Grocery.Shopping.API.Application.Interfaces;
 using Grocery.Shopping.API.Domain.Entities;
 using Grocery.Shopping.API.Dtos;
 using Grocery.Shopping.API.Enums;
@@ -10,9 +10,9 @@ namespace Grocery.Shopping.API.Domain.Services
 {
     public class EstoqueService : IEstoqueService
     {
-        private readonly MongoDbContext _context;
+        private readonly IMongoDbContext _context;
 
-        public EstoqueService(MongoDbContext context)
+        public EstoqueService(IMongoDbContext context)
         {
             _context = context;
         }

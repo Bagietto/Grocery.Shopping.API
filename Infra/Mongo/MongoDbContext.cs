@@ -1,10 +1,10 @@
-﻿using Grocery.Shopping.API.Domain.Entities;
+using Grocery.Shopping.API.Domain.Entities;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace Grocery.Shopping.API.Infra.Mongo
 {
-    public class MongoDbContext
+    public class MongoDbContext : IMongoDbContext
     {
         private readonly IMongoDatabase _database;
 

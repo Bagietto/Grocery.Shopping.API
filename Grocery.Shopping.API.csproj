@@ -12,4 +12,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Grocery.Shopping.API.Tests\**" />
+    <Content Remove="Grocery.Shopping.API.Tests\**" />
+    <EmbeddedResource Remove="Grocery.Shopping.API.Tests\**" />
+    <None Remove="Grocery.Shopping.API.Tests\**" />
+  </ItemGroup>
+
 </Project>
